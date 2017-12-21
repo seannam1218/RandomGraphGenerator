@@ -8,7 +8,7 @@ class Graph:
         self.vertexArray = []
         self.edgeArray = []
 
-        self.cycles = True
+        self.loops = True
         #self.directed = False
         #self.weighted = False
         #self.connected = False
