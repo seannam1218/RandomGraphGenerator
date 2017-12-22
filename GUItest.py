@@ -1,6 +1,7 @@
 from tkinter import *
 from math import *
 from random import random
+
 from Graph import *
 
 #constants:
@@ -15,20 +16,40 @@ VERTEX_COLOR = "#fff"
 vertexArray = []
 edgeArray = []
 
+#set up tkinter canvas
 root = Tk()
 canvas = Canvas(root, width = WIDTH, height = HEIGHT)
 vertexPosArray = []
 
-#drawing code goes here
-graph = Graph(6, 7)
+#generate graph
+graph = Graph(6, 13)
 graph.makeGraph()
 
-# x1,y1,x2,y2, are vertex positions.
+#draw graph:
+def draw_loop(x, y, r, s, e):
+    canvas.create_arc(x - r, y - r, x + r, y + r, start = s, extent = e, style = "arc")
+
+# x1,y1,x2,y2, are positions of vertex 1 and 2.
 def draw_edge(x1, y1, x2, y2):
+    # building loops
     if (round(x1, 3) == round(x2, 3)) and (round(y1, 3) == round(y2, 3)):
-        canvas.create_arc(x1+15, y1-15, x2+15, y2-15, start = 0, extent = 180)
+        if (x1 >= X_CENTER):
+            if (y1 <= Y_CENTER):
+                angle = 360 - degrees(atan((Y_CENTER - y1)/(x1 - X_CENTER + 0.0001)))
+            elif (y1 > Y_CENTER):
+                angle = degrees(atan((y1 - Y_CENTER)/(x1 - X_CENTER + 0.0001)))
+        elif (x1 < X_CENTER):
+            if (y1 <= Y_CENTER):
+                angle = 180 + degrees(atan((Y_CENTER - y1)/(X_CENTER - x1 + 0.0001)))
+            elif (y1 > Y_CENTER):
+                angle = 180 - degrees(atan((y1 - Y_CENTER)/(X_CENTER - x1 + 0.0001)))
+
+        dx = (x1-X_CENTER)*0.1
+        dy = (y1-Y_CENTER)*0.1
+        draw_loop(x1+dx, y1+dy, VERTEX_RADIUS*1.3, 180-angle-45, -360+90)
+
+    # building normal edges
     else:
-        # atan computes in radians
         if round(x2, 3) == round(x1, 3):
             dx = 0
             dy = VERTEX_RADIUS
@@ -62,11 +83,11 @@ def draw_vertex(name, x, y, r):
     label.place(x= x-6, y= y-9)
 
 for i in range(0, graph.v):
-    v_x = X_CENTER + R * sin(radians(360 * i/graph.v))
-    v_y = Y_CENTER - R * cos(radians(360 * i/graph.v))
+    v_x = X_CENTER + R * sin(2*pi * i/graph.v)
+    v_y = Y_CENTER - R * cos(2*pi * i/graph.v)
     v_pos = [v_x, v_y]
     vertexPosArray.append(v_pos)
-    draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(radians(360 * i/graph.v)), Y_CENTER - R * cos(radians(360 * i/graph.v)), VERTEX_RADIUS)
+    draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(2*pi * i/graph.v), Y_CENTER - R * cos(2*pi * i/graph.v), VERTEX_RADIUS)
 
 for e in graph.edgeArray:
     vertex1_index = ord(e[0])-97
