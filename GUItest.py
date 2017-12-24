@@ -24,7 +24,6 @@ VERTEX_LABEL_WIDTH = 12
 root = Tk()
 canvas = Canvas(root, width=WIDTH, height=HEIGHT)
 
-
 v = IntVar()
 e = IntVar()
 v.set(2)
@@ -57,8 +56,6 @@ def generate_graph(v, e):
 
     # print vertex set and edge set onto console.
     graph.printGraph()
-
-    #generate_button.place(x=WIDTH / 5, y=HEIGHT / 2)
 
 
 #draws loops by drawing an arc on the outer periphery of the graph:
@@ -112,14 +109,13 @@ def draw_edge(x1, y1, x2, y2):
 # draws label of given name centered on x and y coordinates
 def draw_label(name, x, y, bg, w, h):
     # make a frame to allow customization of label size
-    f = Frame(canvas, width=w, height=h, bg=bg)
-    f.pack_propagate(0)  # don't shrink
-    f.place(x=x-w/2, y=y-h/2)
+    #frame = Frame(canvas, width=w, height=h, bg=bg)
+    #frame.place(x=x-w/2, y=y-h/2)
     # make label and pack it on frame.
     var = StringVar()
-    label = Label(f, textvariable = var, bg = bg)
+    label = Label(canvas, textvariable = var, bg = bg)
+    label.place(x=x-6, y=y-9)
     var.set(name)
-    label.pack()
 
 # draws vertex centered around x, y coordinates
 def draw_vertex(name, x, y, r):
@@ -128,15 +124,20 @@ def draw_vertex(name, x, y, r):
     # draw labels for the vertices
     draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
 
-def set_vertex_edge(numVertex, numEdge):
-    v.set(numVertex)
-    e.set(numEdge)
+def set_vertex_edge():
+    v.set(v_entry.get())
+    e.set(e_entry.get())
     canvas.delete("all")
     generate_graph(v.get(), e.get())
     print("button pressed")
 
-generate_button = Button(canvas, text="Generate", command=lambda: set_vertex_edge(15, 18))
-generate_button.place(x=WIDTH / 5, y=HEIGHT / 2)
+generate_button = Button(canvas, text="Generate", command=lambda:set_vertex_edge())
+generate_button.place(x=WIDTH/5, y=HEIGHT/2)
+
+v_entry = Entry(canvas, width=5)
+v_entry.place(x=WIDTH/5, y=HEIGHT/3)
+e_entry = Entry(canvas, width=5)
+e_entry.place(x=WIDTH/5, y=HEIGHT/3+20)
 
 #generate_graph(v.get(), e.get())
 canvas.pack()
