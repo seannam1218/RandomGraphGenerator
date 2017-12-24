@@ -19,11 +19,14 @@ class Graph:
             self.vertexArray.append(chr(i+97))
         for j in range(self.e):
             edge = []
-            a = chr(97 + floor(random() * self.v))
-            b = chr(97 + floor(random() * self.v))
+            #while edge containing both start_vertex and end_vertex doesn't exist in edgeArray (undirected/directed graph)
+            #while edge containing both start_vertex and end_vertex IN THAT ORDER doesn't exist in edgeArray (directed multigraph)
+            start_vertex = chr(97 + floor(random() * self.v))
+            end_vertex = chr(97 + floor(random() * self.v))
+            #weight is a gaussian distribution
             weight = 1
-            edge.append(a)
-            edge.append(b)
+            edge.append(start_vertex)
+            edge.append(end_vertex)
             edge.append(weight)
             self.edgeArray.append(edge)
 

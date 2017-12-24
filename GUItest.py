@@ -1,29 +1,51 @@
 from tkinter import *
-from math import *
-from random import random
-
 from Graph import *
 
 #constants:
 WIDTH = 1000
 HEIGHT = 600
-X_CENTER = WIDTH/2
+X_CENTER = WIDTH*2/3
 Y_CENTER = HEIGHT/2
 R = min(WIDTH, HEIGHT)*0.4
 
 VERTEX_RADIUS = 15
-VERTEX_COLOR = "#fff"
+VERTEX_COLOR = "yellow"
 vertexArray = []
 edgeArray = []
 
 #set up tkinter canvas
 root = Tk()
-canvas = Canvas(root, width = WIDTH, height = HEIGHT)
+canvas = Canvas(root, width=WIDTH, height=HEIGHT)
 vertexPosArray = []
 
-#generate graph
-graph = Graph(6, 13)
-graph.makeGraph()
+#labels
+VERTEX_LABEL_HEIGHT = 15
+VERTEX_LABEL_WIDTH = 12
+
+def generate_graph(v, e):
+    # generate graph
+    graph = Graph(v, e)
+    graph.makeGraph()
+
+    for i in range(0, graph.v):
+        v_x = X_CENTER + R * sin(2 * pi * i / graph.v)
+        v_y = Y_CENTER - R * cos(2 * pi * i / graph.v)
+        v_pos = [v_x, v_y]
+        vertexPosArray.append(v_pos)
+        draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(2 * pi * i / graph.v),
+                    Y_CENTER - R * cos(2 * pi * i / graph.v), VERTEX_RADIUS)
+
+    for e in graph.edgeArray:
+        vertex1_index = ord(e[0]) - 97
+        vertex2_index = ord(e[1]) - 97
+        x1 = vertexPosArray[vertex1_index][0]
+        y1 = vertexPosArray[vertex1_index][1]
+        x2 = vertexPosArray[vertex2_index][0]
+        y2 = vertexPosArray[vertex2_index][1]
+        draw_edge(x1, y1, x2, y2)
+
+    # print vertex set and edge set onto console.
+    graph.printGraph()
 
 #draw graph:
 def draw_loop(x, y, r, s, e):
@@ -72,33 +94,26 @@ def draw_edge(x1, y1, x2, y2):
             if y1 >= y2:
                 canvas.create_line(x1 - dx, y1 - dy, x2 + dx, y2 + dy)
 
-#x and y are coordinates of the center of vertex.
+
+# draws label of given name centered on x and y coordinates
+def draw_label(name, x, y, bg, w, h):
+    # make a frame to allow customization of label size
+    f = Frame(canvas, width=w, height=h, bg=bg)
+    f.pack_propagate(0)  # don't shrink
+    f.place(x=x-w/2, y=y-h/2)
+    # make label and pack it on frame.
+    var = StringVar()
+    label = Label(f, textvariable = var, bg = bg)
+    var.set(name)
+    label.pack()
+
+# draws vertex centered around x, y coordinates
 def draw_vertex(name, x, y, r):
     # draw vertices
     canvas.create_oval(x-r, y-r, x+r, y+r, fill = VERTEX_COLOR)
     # draw labels for the vertices
-    var = StringVar()
-    label = Label(root, textvariable = var,  bg = VERTEX_COLOR)
-    var.set(name)
-    label.place(x= x-6, y= y-9)
+    draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
 
-for i in range(0, graph.v):
-    v_x = X_CENTER + R * sin(2*pi * i/graph.v)
-    v_y = Y_CENTER - R * cos(2*pi * i/graph.v)
-    v_pos = [v_x, v_y]
-    vertexPosArray.append(v_pos)
-    draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(2*pi * i/graph.v), Y_CENTER - R * cos(2*pi * i/graph.v), VERTEX_RADIUS)
-
-for e in graph.edgeArray:
-    vertex1_index = ord(e[0])-97
-    vertex2_index = ord(e[1])-97
-    x1 = vertexPosArray[vertex1_index][0]
-    y1 = vertexPosArray[vertex1_index][1]
-    x2 = vertexPosArray[vertex2_index][0]
-    y2 = vertexPosArray[vertex2_index][1]
-    draw_edge(x1, y1, x2, y2)
-
-graph.printGraph()
-
+generate_graph(13, 15)
 canvas.pack()
 root.mainloop()
