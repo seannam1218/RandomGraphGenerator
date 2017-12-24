@@ -1,32 +1,42 @@
 from tkinter import *
 from Graph import *
 
-#constants:
+#constants for the window:
 WIDTH = 1000
 HEIGHT = 600
+
+#constants for graph part of the visualization
 X_CENTER = WIDTH*2/3
 Y_CENTER = HEIGHT/2
 R = min(WIDTH, HEIGHT)*0.4
 
+# constants for vertices and edges representations
 VERTEX_RADIUS = 15
 VERTEX_COLOR = "yellow"
 vertexArray = []
 edgeArray = []
 
-#set up tkinter canvas
-root = Tk()
-canvas = Canvas(root, width=WIDTH, height=HEIGHT)
-vertexPosArray = []
-
-#labels
+# constants for labels
 VERTEX_LABEL_HEIGHT = 15
 VERTEX_LABEL_WIDTH = 12
+
+#setting up tkinter canvas
+root = Tk()
+canvas = Canvas(root, width=WIDTH, height=HEIGHT)
+
+
+v = IntVar()
+e = IntVar()
+v.set(2)
+e.set(2)
 
 def generate_graph(v, e):
     # generate graph
     graph = Graph(v, e)
     graph.makeGraph()
+    vertexPosArray = []
 
+    #draw vertices
     for i in range(0, graph.v):
         v_x = X_CENTER + R * sin(2 * pi * i / graph.v)
         v_y = Y_CENTER - R * cos(2 * pi * i / graph.v)
@@ -35,6 +45,7 @@ def generate_graph(v, e):
         draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(2 * pi * i / graph.v),
                     Y_CENTER - R * cos(2 * pi * i / graph.v), VERTEX_RADIUS)
 
+    #draw edges
     for e in graph.edgeArray:
         vertex1_index = ord(e[0]) - 97
         vertex2_index = ord(e[1]) - 97
@@ -47,7 +58,10 @@ def generate_graph(v, e):
     # print vertex set and edge set onto console.
     graph.printGraph()
 
-#draw graph:
+    #generate_button.place(x=WIDTH / 5, y=HEIGHT / 2)
+
+
+#draws loops by drawing an arc on the outer periphery of the graph:
 def draw_loop(x, y, r, s, e):
     canvas.create_arc(x - r, y - r, x + r, y + r, start = s, extent = e, style = "arc")
 
@@ -114,6 +128,16 @@ def draw_vertex(name, x, y, r):
     # draw labels for the vertices
     draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
 
-generate_graph(13, 15)
+def set_vertex_edge(numVertex, numEdge):
+    v.set(numVertex)
+    e.set(numEdge)
+    canvas.delete("all")
+    generate_graph(v.get(), e.get())
+    print("button pressed")
+
+generate_button = Button(canvas, text="Generate", command=lambda: set_vertex_edge(15, 18))
+generate_button.place(x=WIDTH / 5, y=HEIGHT / 2)
+
+#generate_graph(v.get(), e.get())
 canvas.pack()
 root.mainloop()
