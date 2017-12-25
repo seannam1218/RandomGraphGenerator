@@ -1,4 +1,6 @@
 from tkinter import *
+from tkinter import messagebox
+
 from Graph import *
 
 #constants for the window:
@@ -152,8 +154,16 @@ def draw_vertex(name, x, y, r):
     draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
 
 def onButtonPress():
+    if v_entry.get() == "" or e_entry.get() == "":
+        messagebox.showinfo("Information", "Please fill in the entry boxes for the number of vertices and edges.")
+
     v.set(v_entry.get())
     e.set(e_entry.get())
+    #check for entries that cause errors
+    if v.get() > 24 or v.get() < 1:
+        messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 22.")
+        return
+
     canvas.delete("all")
     # canvas.delete("all") doesn't take care of labels.
     # manually removes all the labels made.
