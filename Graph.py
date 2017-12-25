@@ -2,13 +2,13 @@ from math import *
 from random import random
 
 class Graph:
-    def __init__(self, v, e):
+    def __init__(self, v, e, loops):
         self.v = v
         self.e = e
         self.vertexArray = []
         self.edgeArray = []
 
-        self.allow_loops = True
+        self.allow_loops = loops
         #self.directed = False
         #self.weighted = False
         #self.connected = False
@@ -55,6 +55,8 @@ class Graph:
         print ("Edges: ")
         print(self.edgeArray)
 
-graph = Graph(4, 7)
+"""
+graph = Graph(4, 5, True)
 graph.makeGraph()
 graph.printGraph()
+"""

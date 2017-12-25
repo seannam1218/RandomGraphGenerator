@@ -4,6 +4,7 @@ from Graph import *
 #constants for the window:
 WIDTH = 1000
 HEIGHT = 600
+line = 20
 
 #constants for graph part of the visualization
 X_CENTER = WIDTH*2/3
@@ -27,14 +28,22 @@ canvas_bg = "aquamarine"
 canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg = canvas_bg)
 
 generate_button = Button(canvas, text="Generate", command=lambda:onButtonPress())
-generate_button.place(x=WIDTH/5, y=HEIGHT/2)
+generate_button.place(x=WIDTH/8, y=HEIGHT/2)
 
 v_entry = Entry(canvas, width=5)
-v_entry.place(x=WIDTH/5, y=HEIGHT/3)
+v_entry.place(x=WIDTH/5, y=HEIGHT/10)
 e_entry = Entry(canvas, width=5)
-e_entry.place(x=WIDTH/5, y=HEIGHT/3+20)
+e_entry.place(x=WIDTH/5, y=HEIGHT/10+line)
 
-entry_label_vertex = Label(canvas, text = "Number of vertices", bg = canvas_bg)
+entry_label_vertex = Label(canvas, text = "Number of vertices:", bg = canvas_bg)
+entry_label_vertex.place(x=WIDTH/5 - 130, y=HEIGHT/10)
+entry_label_edge = Label(canvas, text = "Number of vertices:", bg = canvas_bg)
+entry_label_edge.place(x=WIDTH/5 - 130, y=HEIGHT/10+line)
+
+loops = BooleanVar()
+loops.set(False)
+loops_check = Checkbutton(canvas, text = "allow loops", variable = loops, onvalue="True", offvalue="False", bg = canvas_bg)
+loops_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*3)
 
 v = IntVar()
 e = IntVar()
@@ -43,7 +52,12 @@ e.set(2)
 
 def generate_graph(v, e):
     # generate graph
-    graph = Graph(v, e)
+
+    if loops.get() == True:
+        graph = Graph(v, e, True)
+    else:
+        graph = Graph(v, e, False)
+
     graph.makeGraph()
     vertexPosArray = []
 
@@ -146,6 +160,8 @@ def onButtonPress():
     for l in labelArray:
         l.place_forget()
     labelArray.clear()
+
+    #checkbox
     generate_graph(v.get(), e.get())
     print("button pressed")
 
