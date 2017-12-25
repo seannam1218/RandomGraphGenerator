@@ -19,10 +19,22 @@ edgeArray = []
 # constants for labels
 VERTEX_LABEL_HEIGHT = 15
 VERTEX_LABEL_WIDTH = 12
+labelArray = []
 
 #setting up tkinter canvas
 root = Tk()
-canvas = Canvas(root, width=WIDTH, height=HEIGHT)
+canvas_bg = "aquamarine"
+canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg = canvas_bg)
+
+generate_button = Button(canvas, text="Generate", command=lambda:onButtonPress())
+generate_button.place(x=WIDTH/5, y=HEIGHT/2)
+
+v_entry = Entry(canvas, width=5)
+v_entry.place(x=WIDTH/5, y=HEIGHT/3)
+e_entry = Entry(canvas, width=5)
+e_entry.place(x=WIDTH/5, y=HEIGHT/3+20)
+
+entry_label_vertex = Label(canvas, text = "Number of vertices", bg = canvas_bg)
 
 v = IntVar()
 e = IntVar()
@@ -115,6 +127,7 @@ def draw_label(name, x, y, bg, w, h):
     var = StringVar()
     label = Label(canvas, textvariable = var, bg = bg)
     label.place(x=x-6, y=y-9)
+    labelArray.append(label)
     var.set(name)
 
 # draws vertex centered around x, y coordinates
@@ -124,21 +137,18 @@ def draw_vertex(name, x, y, r):
     # draw labels for the vertices
     draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
 
-def set_vertex_edge():
+def onButtonPress():
     v.set(v_entry.get())
     e.set(e_entry.get())
     canvas.delete("all")
+    # canvas.delete("all") doesn't take care of labels.
+    # manually removes all the labels made.
+    for l in labelArray:
+        l.place_forget()
+    labelArray.clear()
     generate_graph(v.get(), e.get())
     print("button pressed")
 
-generate_button = Button(canvas, text="Generate", command=lambda:set_vertex_edge())
-generate_button.place(x=WIDTH/5, y=HEIGHT/2)
 
-v_entry = Entry(canvas, width=5)
-v_entry.place(x=WIDTH/5, y=HEIGHT/3)
-e_entry = Entry(canvas, width=5)
-e_entry.place(x=WIDTH/5, y=HEIGHT/3+20)
-
-#generate_graph(v.get(), e.get())
 canvas.pack()
 root.mainloop()
