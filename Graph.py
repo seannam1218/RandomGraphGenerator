@@ -9,7 +9,7 @@ class Graph:
         self.edgeArray = []
 
         self.allow_loops = loops
-        #self.directed = False
+        self.directed = False
         #self.weighted = False
         #self.connected = False
 

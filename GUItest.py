@@ -47,6 +47,11 @@ loops.set(False)
 loops_check = Checkbutton(canvas, text = "allow loops", variable = loops, onvalue="True", offvalue="False", bg = canvas_bg)
 loops_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*3)
 
+directed = BooleanVar()
+directed.set(False)
+directed_check = Checkbutton(canvas, text = "directed", variable = directed, onvalue="True", offvalue="False", bg = canvas_bg)
+directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*4)
+
 v = IntVar()
 e = IntVar()
 v.set(2)
@@ -59,6 +64,11 @@ def generate_graph(v, e):
         graph = Graph(v, e, True)
     else:
         graph = Graph(v, e, False)
+
+    if directed.get() == True:
+        graph.directed = True
+    else:
+        graph.directed = False
 
     graph.makeGraph()
     vertexPosArray = []
@@ -80,7 +90,11 @@ def generate_graph(v, e):
         y1 = vertexPosArray[vertex1_index][1]
         x2 = vertexPosArray[vertex2_index][0]
         y2 = vertexPosArray[vertex2_index][1]
-        draw_edge(x1, y1, x2, y2)
+        if graph.directed == True:
+            draw_edge(x1, y1, x2, y2, True)
+        else:
+            draw_edge(x1,y1,x2,y2, False)
+
 
     # print vertex set and edge set onto console.
     graph.printGraph()
@@ -91,7 +105,7 @@ def draw_loop(x, y, r, s, e):
     canvas.create_arc(x - r, y - r, x + r, y + r, start = s, extent = e, style = "arc")
 
 # x1,y1,x2,y2, are positions of vertex 1 and 2.
-def draw_edge(x1, y1, x2, y2):
+def draw_edge(x1, y1, x2, y2, dir):
     # building loops
     if (round(x1, 3) == round(x2, 3)) and (round(y1, 3) == round(y2, 3)):
         if (x1 >= X_CENTER):
@@ -122,16 +136,28 @@ def draw_edge(x1, y1, x2, y2):
             dx = abs(VERTEX_RADIUS * cos(angle))
             dy = abs(VERTEX_RADIUS * sin(angle))
 
-        if x1 < x2:
-            if y1 < y2:
-                canvas.create_line(x1 + dx, y1 + dy, x2 - dx, y2 - dy)
-            if y1 >= y2:
-                canvas.create_line(x1 + dx, y1 - dy, x2 - dx, y2 + dy)
-        if x1 >= x2:
-            if y1 < y2:
-                canvas.create_line(x1 - dx, y1 + dy, x2 + dx, y2 - dy)
-            if y1 >= y2:
-                canvas.create_line(x1 - dx, y1 - dy, x2 + dx, y2 + dy)
+        if dir == True:
+            if x1 < x2:
+                if y1 < y2:
+                    canvas.create_line(x1 + dx, y1 + dy, x2 - dx, y2 - dy, arrow = LAST)
+                if y1 >= y2:
+                    canvas.create_line(x1 + dx, y1 - dy, x2 - dx, y2 + dy, arrow = LAST)
+            if x1 >= x2:
+                if y1 < y2:
+                    canvas.create_line(x1 - dx, y1 + dy, x2 + dx, y2 - dy, arrow = LAST)
+                if y1 >= y2:
+                    canvas.create_line(x1 - dx, y1 - dy, x2 + dx, y2 + dy, arrow = LAST)
+        else:
+            if x1 < x2:
+                if y1 < y2:
+                    canvas.create_line(x1 + dx, y1 + dy, x2 - dx, y2 - dy)
+                if y1 >= y2:
+                    canvas.create_line(x1 + dx, y1 - dy, x2 - dx, y2 + dy)
+            if x1 >= x2:
+                if y1 < y2:
+                    canvas.create_line(x1 - dx, y1 + dy, x2 + dx, y2 - dy)
+                if y1 >= y2:
+                    canvas.create_line(x1 - dx, y1 - dy, x2 + dx, y2 + dy)
 
 
 # draws label of given name centered on x and y coordinates
@@ -156,14 +182,13 @@ def draw_vertex(name, x, y, r):
 def onButtonPress():
     if v_entry.get() == "" or e_entry.get() == "":
         messagebox.showinfo("Information", "Please fill in the entry boxes for the number of vertices and edges.")
-
+        return
     v.set(v_entry.get())
     e.set(e_entry.get())
     #check for entries that cause errors
     if v.get() > 24 or v.get() < 1:
         messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 22.")
         return
-
     canvas.delete("all")
     # canvas.delete("all") doesn't take care of labels.
     # manually removes all the labels made.
@@ -171,10 +196,8 @@ def onButtonPress():
         l.place_forget()
     labelArray.clear()
 
-    #checkbox
     generate_graph(v.get(), e.get())
     print("button pressed")
-
 
 canvas.pack()
 root.mainloop()
