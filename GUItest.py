@@ -27,7 +27,26 @@ root = Tk()
 CANVAS_BG = "aquamarine"
 canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg = CANVAS_BG)
 
-generate_button = Button(canvas, text="Generate", command=lambda:onButtonPress())
+def onButtonPress():
+    if v_entry.get() == "" or e_entry.get() == "":
+        messagebox.showinfo("Information", "Please fill in the entry boxes for the number of vertices and edges.")
+        return
+    v.set(v_entry.get())
+    e.set(e_entry.get())
+    #check for entries that cause errors
+    if v.get() > 24 or v.get() < 1:
+        messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 22.")
+        return
+    canvas.delete("all")
+    # canvas.delete("all") doesn't take care of labels.
+    # manually removes all the labels made.
+    for l in labelArray:
+        l[0].place_forget()
+    labelArray.clear()
+
+    generate_graph(v.get(), e.get())
+
+generate_button = Button(canvas, text="Generate", command=onButtonPress)
 generate_button.place(x=WIDTH/8, y=HEIGHT/2)
 
 v_entry = Entry(canvas, width=5)
@@ -50,24 +69,43 @@ directed.set(False)
 directed_check = Checkbutton(canvas, text = "directed", variable = directed, onvalue="True", offvalue="False", bg = CANVAS_BG)
 directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*4)
 
-weighted = BooleanVar()
-weighted.set(False)
-weighted_check = Checkbutton(canvas, text = "weighted", variable = weighted, onvalue="True", offvalue="False", bg = CANVAS_BG)
-weighted_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*5)
+weight_option = StringVar()
+weight_option.set("Weighted: off") # initial value
+options = ["Weighted: off", "Weighted: Gaussian-distributed weights", "Weighted: randomly distributed weights"]
+def onOptionClick(option):
+    if weight_option.get() == "Weighted: off":
+        wt_entry1_name.set("")
+        wt_entry1_label.config(text = wt_entry1_name.get())
+        wt_entry2_name.set("")
+        wt_entry2_label.config(text=wt_entry2_name.get())
+    elif weight_option.get() == "Weighted: Gaussian-distributed weights":
+        wt_entry1_name.set("Mean")
+        wt_entry1_label.config(text=wt_entry1_name.get())
+        wt_entry2_name.set("Standard deviation")
+        wt_entry2_label.config(text=wt_entry2_name.get())
+    elif weight_option.get() == "Weighted: randomly distributed weights":
+        wt_entry1_name.set("Min")
+        wt_entry1_label.config(text=wt_entry1_name.get())
+        wt_entry2_name.set("Max")
+        wt_entry2_label.config(text=wt_entry2_name.get())
 
-weighted_Gaussian = BooleanVar()
-weighted_random = BooleanVar()
+option = OptionMenu(canvas, weight_option, *(options), command=onOptionClick)
+option.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*6)
 
-def wtd_Gaus():
-    weighted_Gaussian.set(True)
-def wtd_rand():
-    weighted_random.set(True)
+wt_entry1 = Entry(canvas, width=5)
+wt_entry1.place(x=WIDTH/5, y=HEIGHT/10+LINE*8)
+wt_entry2 = Entry(canvas, width=5)
+wt_entry2.place(x=WIDTH/5, y=HEIGHT/10+LINE*9)
 
-var = IntVar()
-R1 = Radiobutton(canvas, text="Gaussian-distributed values", variable=weighted_Gaussian, value=1, command=wtd_Gaus)
-R1.place(x=WIDTH/5 - 100, y=HEIGHT/10 + LINE*6)
-R2 = Radiobutton(canvas, text="Random values", variable=weighted_random, value=2, command=wtd_rand)
-R2.place(x=WIDTH/5 - 100, y=HEIGHT/10 + LINE*7)
+wt_entry1_name = StringVar()
+wt_entry1_name.set("Mean: ")
+wt_entry2_name = StringVar()
+wt_entry2_name.set("Standard deviation: ")
+
+wt_entry1_label = Label(canvas, text = wt_entry1_name.get(), bg = CANVAS_BG)
+wt_entry1_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*8)
+wt_entry2_label = Label(canvas, text = wt_entry2_name.get(), bg = CANVAS_BG)
+wt_entry2_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*9)
 
 v = IntVar()
 e = IntVar()
@@ -76,11 +114,10 @@ e.set(2)
 
 def generate_graph(v, e):
     # generate graph
-
     graph = Graph(v, e, loops.get())
 
     graph.directed = directed.get()
-    graph.weighted = weighted.get()
+   # graph.weighted = weighted.get()
 
     graph.makeGraph()
     vertexPosArray = []
@@ -98,7 +135,7 @@ def generate_graph(v, e):
         graph.generateWeights()
 
     #draw edges
-    for i in range(1, graph.e):
+    for i in range(0, graph.e):
         vertex1_index = ord(graph.edgeArray[i][0]) - 97
         vertex2_index = ord(graph.edgeArray[i][1]) - 97
 
@@ -130,7 +167,7 @@ def avoid_collision(x1, y1, x2, y2, def_factor):
     for l in labelArray:
         # if location of label collides with another existing label, change def_factor
         if (l[1] > x1+def_factor*(x2-x1)-5) and (l[1] < x1+def_factor*(x2-x1)+5) and (l[2] > y1+def_factor*(y2-y1)-5) and (l[2] < y1+def_factor*(y2-y1)+5):
-            ret = avoid_collision(x1, y1, x2, y2, def_factor-0.03)
+            ret = avoid_collision(x1, y1, x2, y2, def_factor-0.03) #or ret-0.03 if you want to move just one.
     return ret
 
 #draws loops by drawing an arc on the outer periphery of the graph:
@@ -212,25 +249,6 @@ def draw_vertex(name, x, y, r):
     # draw labels for the vertices
     #draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
     draw_label(name, 11, x, y, VERTEX_COLOR)
-
-def onButtonPress():
-    if v_entry.get() == "" or e_entry.get() == "":
-        messagebox.showinfo("Information", "Please fill in the entry boxes for the number of vertices and edges.")
-        return
-    v.set(v_entry.get())
-    e.set(e_entry.get())
-    #check for entries that cause errors
-    if v.get() > 24 or v.get() < 1:
-        messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 22.")
-        return
-    canvas.delete("all")
-    # canvas.delete("all") doesn't take care of labels.
-    # manually removes all the labels made.
-    for l in labelArray:
-        l[0].place_forget()
-    labelArray.clear()
-
-    generate_graph(v.get(), e.get())
 
 
 canvas.pack()
