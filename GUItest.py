@@ -55,6 +55,20 @@ weighted.set(False)
 weighted_check = Checkbutton(canvas, text = "weighted", variable = weighted, onvalue="True", offvalue="False", bg = CANVAS_BG)
 weighted_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*5)
 
+weighted_Gaussian = BooleanVar()
+weighted_random = BooleanVar()
+
+def wtd_Gaus():
+    weighted_Gaussian.set(True)
+def wtd_rand():
+    weighted_random.set(True)
+
+var = IntVar()
+R1 = Radiobutton(canvas, text="Gaussian-distributed values", variable=weighted_Gaussian, value=1, command=wtd_Gaus)
+R1.place(x=WIDTH/5 - 100, y=HEIGHT/10 + LINE*6)
+R2 = Radiobutton(canvas, text="Random values", variable=weighted_random, value=2, command=wtd_rand)
+R2.place(x=WIDTH/5 - 100, y=HEIGHT/10 + LINE*7)
+
 v = IntVar()
 e = IntVar()
 v.set(2)
@@ -95,10 +109,15 @@ def generate_graph(v, e):
         draw_edge(x1, y1, x2, y2, graph.directed)
 
         if (graph.weighted == True):
-            dx = x2-x1
-            dy = y2-y1
             if (graph.edgeArray[i][0] != graph.edgeArray[i][1]):
-                draw_label(graph.weightArray[i], 8, x1+0.35*dx + 1, y1+0.35*dy, CANVAS_BG)
+                dx = x2 - x1
+                dy = y2 - y1
+                factor = avoid_collision(x1, y1, x2, y2, 0.6)
+                draw_label(graph.weightArray[i], 7, x1+factor*dx + 1, y1+factor*dy, CANVAS_BG)
+            else:
+                dx = X_CENTER - x1
+                dy = Y_CENTER - y1
+                draw_label(graph.weightArray[i], 7, x1-0.18*dx, y1-0.18*dy, CANVAS_BG)
 
     # print vertex set and edge set onto console.
     graph.printGraph()
@@ -106,6 +125,13 @@ def generate_graph(v, e):
     graph.printWeights()
     print("")
 
+def avoid_collision(x1, y1, x2, y2, def_factor):
+    ret = def_factor
+    for l in labelArray:
+        # if location of label collides with another existing label, change def_factor
+        if (l[1] > x1+def_factor*(x2-x1)-5) and (l[1] < x1+def_factor*(x2-x1)+5) and (l[2] > y1+def_factor*(y2-y1)-5) and (l[2] < y1+def_factor*(y2-y1)+5):
+            ret = avoid_collision(x1, y1, x2, y2, def_factor-0.03)
+    return ret
 
 #draws loops by drawing an arc on the outer periphery of the graph:
 def draw_loop(x, y, r, s, e):
@@ -175,9 +201,8 @@ def draw_label(name, fontsize, x, y, bg):
     # make label and pack it on frame.
     var = StringVar()
     label = Label(canvas, textvariable = var, bg = bg, font=("Arial", fontsize))
-    #label.config(font=("Arial", fontsize))
     label.place(x=x-6, y=y-9)
-    labelArray.append(label)
+    labelArray.append([label, x, y])
     var.set(name)
 
 # draws vertex centered around x, y coordinates
@@ -202,7 +227,7 @@ def onButtonPress():
     # canvas.delete("all") doesn't take care of labels.
     # manually removes all the labels made.
     for l in labelArray:
-        l.place_forget()
+        l[0].place_forget()
     labelArray.clear()
 
     generate_graph(v.get(), e.get())
