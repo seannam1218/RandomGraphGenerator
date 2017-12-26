@@ -6,7 +6,7 @@ from Graph import *
 #constants for the window:
 WIDTH = 1000
 HEIGHT = 600
-line = 20
+LINE = 20
 
 #constants for graph part of the visualization
 X_CENTER = WIDTH*2/3
@@ -16,8 +16,6 @@ R = min(WIDTH, HEIGHT)*0.4
 # constants for vertices and edges representations
 VERTEX_RADIUS = 15
 VERTEX_COLOR = "yellow"
-vertexArray = []
-edgeArray = []
 
 # constants for labels
 VERTEX_LABEL_HEIGHT = 15
@@ -26,8 +24,8 @@ labelArray = []
 
 #setting up tkinter canvas
 root = Tk()
-canvas_bg = "aquamarine"
-canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg = canvas_bg)
+CANVAS_BG = "aquamarine"
+canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg = CANVAS_BG)
 
 generate_button = Button(canvas, text="Generate", command=lambda:onButtonPress())
 generate_button.place(x=WIDTH/8, y=HEIGHT/2)
@@ -35,27 +33,27 @@ generate_button.place(x=WIDTH/8, y=HEIGHT/2)
 v_entry = Entry(canvas, width=5)
 v_entry.place(x=WIDTH/5, y=HEIGHT/10)
 e_entry = Entry(canvas, width=5)
-e_entry.place(x=WIDTH/5, y=HEIGHT/10+line)
+e_entry.place(x=WIDTH/5, y=HEIGHT/10+LINE)
 
-entry_label_vertex = Label(canvas, text = "Number of vertices:", bg = canvas_bg)
+entry_label_vertex = Label(canvas, text = "Number of vertices:", bg = CANVAS_BG)
 entry_label_vertex.place(x=WIDTH/5 - 130, y=HEIGHT/10)
-entry_label_edge = Label(canvas, text = "Number of vertices:", bg = canvas_bg)
-entry_label_edge.place(x=WIDTH/5 - 130, y=HEIGHT/10+line)
+entry_label_edge = Label(canvas, text = "Number of vertices:", bg = CANVAS_BG)
+entry_label_edge.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE)
 
 loops = BooleanVar()
 loops.set(False)
-loops_check = Checkbutton(canvas, text = "allow loops", variable = loops, onvalue="True", offvalue="False", bg = canvas_bg)
-loops_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*3)
+loops_check = Checkbutton(canvas, text = "allow loops", variable = loops, onvalue="True", offvalue="False", bg = CANVAS_BG)
+loops_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*3)
 
 directed = BooleanVar()
 directed.set(False)
-directed_check = Checkbutton(canvas, text = "directed", variable = directed, onvalue="True", offvalue="False", bg = canvas_bg)
-directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*4)
+directed_check = Checkbutton(canvas, text = "directed", variable = directed, onvalue="True", offvalue="False", bg = CANVAS_BG)
+directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*4)
 
 weighted = BooleanVar()
 weighted.set(False)
-weighted_check = Checkbutton(canvas, text = "weighted", variable = weighted, onvalue="True", offvalue="False", bg = canvas_bg)
-weighted_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*5)
+weighted_check = Checkbutton(canvas, text = "weighted", variable = weighted, onvalue="True", offvalue="False", bg = CANVAS_BG)
+weighted_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*5)
 
 v = IntVar()
 e = IntVar()
@@ -82,29 +80,31 @@ def generate_graph(v, e):
         draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(2 * pi * i / graph.v),
                     Y_CENTER - R * cos(2 * pi * i / graph.v), VERTEX_RADIUS)
 
+    if (graph.weighted == True):
+        graph.generateWeights()
+
     #draw edges
-    for e in graph.edgeArray:
-        vertex1_index = ord(e[0]) - 97
-        vertex2_index = ord(e[1]) - 97
+    for i in range(1, graph.e):
+        vertex1_index = ord(graph.edgeArray[i][0]) - 97
+        vertex2_index = ord(graph.edgeArray[i][1]) - 97
+
         x1 = vertexPosArray[vertex1_index][0]
         y1 = vertexPosArray[vertex1_index][1]
         x2 = vertexPosArray[vertex2_index][0]
         y2 = vertexPosArray[vertex2_index][1]
-        if graph.directed == True:
-            draw_edge(x1, y1, x2, y2, True)
-        else:
-            draw_edge(x1,y1,x2,y2, False)
+        draw_edge(x1, y1, x2, y2, graph.directed)
 
+        if (graph.weighted == True):
+            dx = x2-x1
+            dy = y2-y1
+            if (graph.edgeArray[i][0] != graph.edgeArray[i][1]):
+                draw_label(graph.weightArray[i], 8, x1+0.35*dx + 1, y1+0.35*dy, CANVAS_BG)
 
     # print vertex set and edge set onto console.
     graph.printGraph()
-
-    if (graph.weighted == True):
-        for e in graph.edgeArray:
-            # implement algorithms for weights generation.
-            graph.weightArray.append(1)
-        print("Weights: ")
-        print(graph.weightArray)
+    # if weighted == True, print weights
+    graph.printWeights()
+    print("")
 
 
 #draws loops by drawing an arc on the outer periphery of the graph:
@@ -168,13 +168,14 @@ def draw_edge(x1, y1, x2, y2, dir):
 
 
 # draws label of given name centered on x and y coordinates
-def draw_label(name, x, y, bg, w, h):
+def draw_label(name, fontsize, x, y, bg):
     # make a frame to allow customization of label size
     #frame = Frame(canvas, width=w, height=h, bg=bg)
     #frame.place(x=x-w/2, y=y-h/2)
     # make label and pack it on frame.
     var = StringVar()
-    label = Label(canvas, textvariable = var, bg = bg)
+    label = Label(canvas, textvariable = var, bg = bg, font=("Arial", fontsize))
+    #label.config(font=("Arial", fontsize))
     label.place(x=x-6, y=y-9)
     labelArray.append(label)
     var.set(name)
@@ -184,7 +185,8 @@ def draw_vertex(name, x, y, r):
     # draw vertices
     canvas.create_oval(x-r, y-r, x+r, y+r, fill = VERTEX_COLOR)
     # draw labels for the vertices
-    draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
+    #draw_label(name, x, y, VERTEX_COLOR, VERTEX_LABEL_WIDTH, VERTEX_LABEL_HEIGHT)
+    draw_label(name, 11, x, y, VERTEX_COLOR)
 
 def onButtonPress():
     if v_entry.get() == "" or e_entry.get() == "":

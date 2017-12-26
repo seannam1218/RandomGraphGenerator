@@ -27,8 +27,6 @@ class Graph:
             #while edge containing both start_vertex and end_vertex IN THAT ORDER doesn't exist in edgeArray (directed multigraph)
             start_vertex = chr(97 + floor(random() * self.v))
             end_vertex = chr(97 + floor(random() * self.v))
-            #weight is a gaussian distribution
-            weight = 1
 
             if self.allow_loops == False:
                 if start_vertex == end_vertex:
@@ -46,7 +44,6 @@ class Graph:
 
             edge.append(start_vertex)
             edge.append(end_vertex)
-            edge.append(weight)
             self.edgeArray.append(edge)
             j+=1
 
@@ -55,6 +52,16 @@ class Graph:
         print(self.vertexArray)
         print ("Edges: ")
         print(self.edgeArray)
+
+    def generateWeights(self):
+        for e in self.edgeArray:
+            # implement algorithms for weights generation.
+            self.weightArray.append(1)
+
+    def printWeights(self):
+        if (self.weighted == True):
+            print("Weights: ")
+            print(self.weightArray)
 
 """
 graph = Graph(4, 5, True)
