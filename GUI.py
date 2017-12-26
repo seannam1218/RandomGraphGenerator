@@ -34,9 +34,23 @@ def onButtonPress():
     v.set(v_entry.get())
     e.set(e_entry.get())
     #check for entries that cause errors
-    if v.get() > 24 or v.get() < 1:
-        messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 22.")
+    if v.get() > 20 or v.get() < 1:
+        messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 20.")
         return
+
+    if weight_option.get() == "Weighted: Gaussian-distributed weights":
+        if wt_entry1.get() == "" or wt_entry2.get() == "":
+            messagebox.showinfo("Information", "Please fill in the entry boxes for mean and standard deviation of weight values.")
+            return
+    elif weight_option.get() == "Weighted: randomly distributed weights":
+        if wt_entry1.get() == "" or wt_entry2.get() == "":
+            messagebox.showinfo("Information", "Please fill in the entry boxes for min and max weight values.")
+            return
+        elif int(wt_entry1.get()) > int(wt_entry2.get()):
+            messagebox.showinfo("Information", "min value must be smaller or equal to max value")
+            return
+
+
     canvas.delete("all")
     # canvas.delete("all") doesn't take care of labels.
     # manually removes all the labels made.
