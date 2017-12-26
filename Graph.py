@@ -1,5 +1,6 @@
 from math import *
-from random import random
+from random import random, gauss
+
 
 class Graph:
     def __init__(self, v, e, loops):
@@ -53,18 +54,21 @@ class Graph:
         print ("Edges: ")
         print(self.edgeArray)
 
-    def generateWeights(self):
-        for e in self.edgeArray:
-            # implement algorithms for weights generation.
-            self.weightArray.append(1)
+    def generateWeights(self, distribution_type, x, y):
+        if (distribution_type == "gaussian"):
+            for e in self.edgeArray:
+                # implement algorithms for weights generation.
+                value = gauss(x, y)
+                self.weightArray.append(round(value, 1))
+        elif (distribution_type == "random"):
+            for e in self.edgeArray:
+                # implement algorithms for weights generation.
+                value = random()*(y-x) + x
+                print(value)
+                self.weightArray.append(round(value, 1))
 
     def printWeights(self):
         if (self.weighted == True):
             print("Weights: ")
             print(self.weightArray)
 
-"""
-graph = Graph(4, 5, True)
-graph.makeGraph()
-graph.printGraph()
-"""

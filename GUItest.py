@@ -72,6 +72,7 @@ directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*4)
 weight_option = StringVar()
 weight_option.set("Weighted: off") # initial value
 options = ["Weighted: off", "Weighted: Gaussian-distributed weights", "Weighted: randomly distributed weights"]
+
 def onOptionClick(option):
     if weight_option.get() == "Weighted: off":
         wt_entry1_name.set("")
@@ -98,9 +99,9 @@ wt_entry2 = Entry(canvas, width=5)
 wt_entry2.place(x=WIDTH/5, y=HEIGHT/10+LINE*9)
 
 wt_entry1_name = StringVar()
-wt_entry1_name.set("Mean: ")
+wt_entry1_name.set("")
 wt_entry2_name = StringVar()
-wt_entry2_name.set("Standard deviation: ")
+wt_entry2_name.set("")
 
 wt_entry1_label = Label(canvas, text = wt_entry1_name.get(), bg = CANVAS_BG)
 wt_entry1_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*8)
@@ -117,7 +118,6 @@ def generate_graph(v, e):
     graph = Graph(v, e, loops.get())
 
     graph.directed = directed.get()
-   # graph.weighted = weighted.get()
 
     graph.makeGraph()
     vertexPosArray = []
@@ -131,8 +131,24 @@ def generate_graph(v, e):
         draw_vertex(graph.vertexArray[i], X_CENTER + R * sin(2 * pi * i / graph.v),
                     Y_CENTER - R * cos(2 * pi * i / graph.v), VERTEX_RADIUS)
 
-    if (graph.weighted == True):
-        graph.generateWeights()
+    # weights generation
+    if weight_option.get() == "Weighted: off":
+        graph.weighted = False
+    elif weight_option.get() == "Weighted: Gaussian-distributed weights":
+        graph.weighted = True
+        wt_entry1_name.set("Mean")
+        wt_entry1_label.config(text=wt_entry1_name.get())
+        wt_entry2_name.set("Standard deviation")
+        wt_entry2_label.config(text=wt_entry2_name.get())
+        print(wt_entry1.get())
+        graph.generateWeights("gaussian", int(wt_entry1.get()), int(wt_entry2.get()))
+    elif weight_option.get() == "Weighted: randomly distributed weights":
+        graph.weighted = True
+        wt_entry1_name.set("Min")
+        wt_entry1_label.config(text=wt_entry1_name.get())
+        wt_entry2_name.set("Max")
+        wt_entry2_label.config(text=wt_entry2_name.get())
+        graph.generateWeights("random", int(wt_entry1.get()), int(wt_entry2.get()))
 
     #draw edges
     for i in range(0, graph.e):
@@ -159,7 +175,8 @@ def generate_graph(v, e):
     # print vertex set and edge set onto console.
     graph.printGraph()
     # if weighted == True, print weights
-    graph.printWeights()
+    if graph.weighted == True:
+        graph.printWeights()
     print("")
 
 def avoid_collision(x1, y1, x2, y2, def_factor):
