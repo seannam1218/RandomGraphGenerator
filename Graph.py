@@ -7,10 +7,11 @@ class Graph:
         self.e = e
         self.vertexArray = []
         self.edgeArray = []
+        self.weightArray = []
 
         self.allow_loops = loops
         self.directed = False
-        #self.weighted = False
+        self.weighted = False
         #self.connected = False
 
     def makeGraph(self):

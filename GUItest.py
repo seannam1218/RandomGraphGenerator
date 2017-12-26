@@ -52,6 +52,11 @@ directed.set(False)
 directed_check = Checkbutton(canvas, text = "directed", variable = directed, onvalue="True", offvalue="False", bg = canvas_bg)
 directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*4)
 
+weighted = BooleanVar()
+weighted.set(False)
+weighted_check = Checkbutton(canvas, text = "weighted", variable = weighted, onvalue="True", offvalue="False", bg = canvas_bg)
+weighted_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + line*5)
+
 v = IntVar()
 e = IntVar()
 v.set(2)
@@ -60,15 +65,10 @@ e.set(2)
 def generate_graph(v, e):
     # generate graph
 
-    if loops.get() == True:
-        graph = Graph(v, e, True)
-    else:
-        graph = Graph(v, e, False)
+    graph = Graph(v, e, loops.get())
 
-    if directed.get() == True:
-        graph.directed = True
-    else:
-        graph.directed = False
+    graph.directed = directed.get()
+    graph.weighted = weighted.get()
 
     graph.makeGraph()
     vertexPosArray = []
@@ -98,6 +98,13 @@ def generate_graph(v, e):
 
     # print vertex set and edge set onto console.
     graph.printGraph()
+
+    if (graph.weighted == True):
+        for e in graph.edgeArray:
+            # implement algorithms for weights generation.
+            graph.weightArray.append(1)
+        print("Weights: ")
+        print(graph.weightArray)
 
 
 #draws loops by drawing an arc on the outer periphery of the graph:
@@ -197,7 +204,7 @@ def onButtonPress():
     labelArray.clear()
 
     generate_graph(v.get(), e.get())
-    print("button pressed")
+
 
 canvas.pack()
 root.mainloop()
