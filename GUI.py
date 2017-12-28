@@ -1,13 +1,13 @@
 from tkinter import *
 from tkinter import messagebox
-from time import strftime, gmtime
+from time import strftime
 import os.path
 
 from Graph import *
 
 #constants for the window:
-WIDTH = 1000
-HEIGHT = 600
+WIDTH = 1200
+HEIGHT = 700
 LINE = 20
 
 #constants for graph part of the visualization
@@ -80,23 +80,152 @@ def onGenerateButtonPress():
     generate_graph(v.get(), e.get())
 
 generate_button = Button(canvas, text="Generate", command=onGenerateButtonPress)
-generate_button.place(x=WIDTH/5- 130, y=HEIGHT/10+ 15*LINE)
+generate_button.place(x=WIDTH/5- 130, y=HEIGHT/10+ 13*LINE)
 
 def onSaveButtonPress():
+    if graph == None:
+        messagebox.showinfo("Information", "Please generate a graph before saving.")
+        return
+    #make directory named "saved" is it doesn't already exist
+    if not os.path.exists("saved graphs"):
+        os.makedirs("saved graphs")
+
     time = strftime("%Y_%m_%d")
     n = 0
-    while (os.path.isfile(time + '.txt') == True):
+    while (os.path.isfile("saved graphs/" + time + '.txt') == True):
         n += 1
         time = strftime("%Y_%m_%d") + "(" + str(n) + ")"
 
-    f = open(time + '.txt', 'w')
+    f = open("saved graphs/" + time + '.txt', 'w')
     f.write("Vertices = " + str(graph.vertexArray) + "\n" + "Edges = " + str(graph.edgeArray) + "\n")
-    if weight_option.get != "Weighted: off":
-        f.write("Weights = " + str(graph.weightArray) + "\n")
+    f.write("Weights = " + str(graph.weightArray) + "\n")
+
+    #for meta-information
+    f.write("\n //the following is a list of meta-information for the purposes of loading a saved project.\n")
+    f.write("//" + str(graph.v) + ";" + str(graph.e) + ";" + str(graph.allow_loops) + ";" + str(graph.directed) + ";" + str(graph.multi) + ";" + str(weight_option.get()) + ";" + str(wt_entry1.get()) + ";" + str(wt_entry2.get()) + ";" + str(graph.allow_negative) + ";")
+
     f.close()
+    messagebox.showinfo("Information", "Current graph was saved in the following directory:\n ../saved graphs/" + time + ".txt")
 
 save_button = Button(canvas, text="Save", command=onSaveButtonPress)
-save_button.place(x=WIDTH / 5 - 60, y=HEIGHT / 10 + 15 * LINE)
+save_button.place(x=WIDTH / 5 - 60, y=HEIGHT / 10 + 13 * LINE)
+
+def onLoadButtonPress():
+    try:
+        f = open("saved graphs/" + filename_entry.get() + '.txt', 'r')
+    except:
+        messagebox.showinfo("Information", filename_entry.get() + ".txt does not exist in the directory.")
+        return
+    # stores vertex array read from file into tempVArray
+    f.readline(11)
+    vertices_txt = f.readline()
+    tempVArray = []
+    for char in vertices_txt:
+        if char.isalpha():
+            tempVArray.append(char)
+
+    # stores edge array read from file into tempEArray
+    f.readline(8)
+    edges_txt = f.readline()
+    tempEArray = []
+    tempE = []
+    for char in edges_txt:
+        if char.isalpha():
+            if len(tempE) <= 1:
+                tempE.append(char)
+            else:
+                tempEArray.append(tempE)
+                tempE = [char]
+    tempEArray.append(tempE)
+    # stores weight array read from file into tempWArray
+    f.readline(9)
+    weights_txt = f.readline()
+    tempWArray = []
+    weight = ""
+    for char in weights_txt:
+        if char != "," and char != " " and char != "[" and char != "]":
+            weight = weight + char
+        else:
+            if weight != "":
+                tempWArray.append(float(weight))
+            weight = ""
+
+    # read off metadata to construct graph from
+    for i in range(2):
+        f.readline()
+    f.readline(2)
+    txt = f.readline()
+    data = ""
+    dataArray = []
+    for char in txt:
+        if char != ";":
+            data = data + char
+        else:
+            try:
+                data = int(data)
+            except:
+                if data == "True":
+                    data = True
+                elif data == "False":
+                    data = False
+            dataArray.append(data)
+            data = ""
+
+    graph = Graph(dataArray[0], dataArray[1], dataArray[2])
+    v_entry.delete(0,END)
+    v_entry.insert(0, str(dataArray[0]))
+    e_entry.delete(0, END)
+    e_entry.insert(0, str(dataArray[1]))
+    graph.vertexArray = tempVArray
+    graph.edgeArray = tempEArray
+    graph.weightArray = tempWArray
+    graph.allow_loops = dataArray[2]
+    loops.set(dataArray[2])
+    loops_check.deselect()
+    if (dataArray[2] == True):
+        loops_check.select()
+    graph.directed = dataArray[3]
+    directed.set(dataArray[3])
+    directed_check.deselect()
+    if (dataArray[3] == True):
+        directed_check.select()
+    graph.multi = dataArray[4]
+    multigraph.set(dataArray[4])
+    multigraph_check.deselect()
+    if (dataArray[4] == True):
+        multigraph_check.select()
+    graph.weighted = dataArray[5]
+    weight_option.set(dataArray[5])
+    wt_entry1.delete(0, END)
+    wt_entry1.insert(0, str(dataArray[6]))
+    wt_entry2.delete(0, END)
+    wt_entry2.insert(0, str(dataArray[7]))
+    graph.allow_negative = dataArray[8]
+    allow_negative.set(dataArray[8])
+    allow_negative_check.deselect()
+    if (dataArray[8] == True):
+        allow_negative_check.select()
+
+    canvas.delete("all")
+    # canvas.delete("all") doesn't take care of labels.
+    # manually removes all the labels made.
+    for l in labelArray:
+        l[0].place_forget()
+
+    draw_graph(graph)
+    graph.printGraph()
+
+
+load_entry_label = Label(canvas, text = "../saved graphs/", bg = CANVAS_BG)
+load_entry_label.place(x=WIDTH / 5 - 130, y=HEIGHT / 10 + 17 * LINE)
+load_entry_label2 = Label(canvas, text = ".txt", bg = CANVAS_BG)
+load_entry_label2.place(x=WIDTH / 5 + 50, y=HEIGHT / 10 + 17 * LINE)
+
+filename_entry = Entry(canvas, width=14)
+filename_entry.place(x=WIDTH/5 - 40, y=HEIGHT/10+LINE*17)
+
+load_button = Button(canvas, text="Load", command=onLoadButtonPress)
+load_button.place(x=WIDTH / 5 - 130, y=HEIGHT / 10 + 18 * LINE)
 
 v_entry = Entry(canvas, width=5)
 v_entry.place(x=WIDTH/5, y=HEIGHT/10)
@@ -186,9 +315,14 @@ def generate_graph(v, e):
         messagebox.showinfo("Information", "Visualization for multigraphs is not supported. Vertices, edges and weights were generated and are available for saving.")
 
     graph.makeGraph()
-    vertexPosArray = []
+    draw_graph(graph)
+    # print vertex set and edge set (and weight set) onto console.
+    graph.printGraph()
 
-    #draw vertices
+
+def draw_graph(graph):
+    vertexPosArray = []
+    # draw vertices
     for i in range(0, graph.v):
         v_x = X_CENTER + R * sin(2 * pi * i / graph.v)
         v_y = Y_CENTER - R * cos(2 * pi * i / graph.v)
@@ -200,6 +334,7 @@ def generate_graph(v, e):
     # weights generation
     if weight_option.get() == "Weighted: off":
         graph.weighted = False
+        graph.weightArray = []
     elif weight_option.get() == "Weighted: Gaussian-distributed weights":
         graph.weighted = True
         wt_entry1_name.set("Mean")
@@ -208,9 +343,11 @@ def generate_graph(v, e):
         wt_entry2_label.config(text=wt_entry2_name.get())
 
         if allow_negative.get() == True:
-            graph.generateWeights("gaussian", True, int(wt_entry1.get()), int(wt_entry2.get()))
+            graph.allow_negative = True
+            graph.generateWeights("gaussian", int(wt_entry1.get()), int(wt_entry2.get()))
         elif allow_negative.get() == False:
-            graph.generateWeights("gaussian", False, int(wt_entry1.get()), int(wt_entry2.get()))
+            graph.allow_negative = False
+            graph.generateWeights("gaussian", int(wt_entry1.get()), int(wt_entry2.get()))
 
     elif weight_option.get() == "Weighted: randomly distributed weights":
         graph.weighted = True
@@ -219,12 +356,13 @@ def generate_graph(v, e):
         wt_entry2_name.set("Max")
         wt_entry2_label.config(text=wt_entry2_name.get())
         if allow_negative.get() == True:
-            graph.generateWeights("random", True, int(wt_entry1.get()), int(wt_entry2.get()))
+            graph.generateWeights("random", int(wt_entry1.get()), int(wt_entry2.get()))
         elif allow_negative.get() == False:
-            graph.generateWeights("random", False, int(wt_entry1.get()), int(wt_entry2.get()))
+            graph.generateWeights("random", int(wt_entry1.get()), int(wt_entry2.get()))
 
-    #draw edges
+    # draw edges
     if graph.multi == False:
+
         for i in range(0, graph.e):
             vertex1_index = ord(graph.edgeArray[i][0]) - 97
             vertex2_index = ord(graph.edgeArray[i][1]) - 97
@@ -239,26 +377,26 @@ def generate_graph(v, e):
             dy = y2 - y1
 
             if (graph.weighted == True):
-                #for edges that are not loops
+                # for edges that are not loops
                 if (graph.edgeArray[i][0] != graph.edgeArray[i][1]):
                     if (len(graph.edgeArray) < 25):
                         try:
                             factor = avoid_collision(x1, y1, x2, y2, 0.3)
                         except:
-                            #coordinatesArray.clear()
+                            # coordinatesArray.clear()
                             factor = avoid_collision2(x1, y1, x2, y2, 0.3)
-                        draw_label(graph.weightArray[i], 7, x1+factor*dx, y1+factor*dy, CANVAS_BG)
+                        draw_label(graph.weightArray[i], 7, x1 + factor * dx, y1 + factor * dy, CANVAS_BG)
                     else:
                         try:
                             factor = avoid_collision2(x1, y1, x2, y2, 0.3)
                         except:
-                            factor = random()*0.4+0.3
+                            factor = random() * 0.4 + 0.3
                         draw_label(graph.weightArray[i], 7, x1 + factor * dx, y1 + factor * dy, CANVAS_BG)
-                #for loops
+                # for loops
                 else:
                     dx = X_CENTER - x1
                     dy = Y_CENTER - y1
-                    draw_label(graph.weightArray[i], 7, x1-0.18*dx, y1-0.18*dy, CANVAS_BG)
+                    draw_label(graph.weightArray[i], 7, x1 - 0.18 * dx, y1 - 0.18 * dy, CANVAS_BG)
 
             for j in range(50):
                 coordinates = []
@@ -269,15 +407,12 @@ def generate_graph(v, e):
         # after calculation, empty coordinatesArray
         coordinatesArray.clear()
 
-    # print vertex set and edge set (and weight set) onto console.
-    graph.printGraph()
-
 def avoid_collision(x1, y1, x2, y2, factor):
     ret = factor
     x = x1 + ret * (x2 - x1)
     y = y1 + ret * (y2 - y1)
     n = 12
-    for i in range(len(coordinatesArray)-1):
+    for i in range(len(coordinatesArray)):
         if (x > coordinatesArray[i][0] - n) and (x < coordinatesArray[i][0] + n+5) and (y > coordinatesArray[i][1] - n) and (y < coordinatesArray[i][1] + n+5):
             ret = avoid_collision(x1, y1, x2, y2, random()*0.4 + 0.3)
     return ret

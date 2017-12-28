@@ -11,9 +11,9 @@ class Graph:
 
         self.allow_loops = loops
         self.directed = False
-        self.weighted = False
-        self.negative = True
         self.multi = False
+        self.weighted = False
+        self.allow_negative = True
         #self.connected = False
 
     def makeGraph(self):
@@ -60,15 +60,15 @@ class Graph:
             self.printWeights()
         print("")
 
-    def generateWeights(self, distribution_type, allow_negative, x, y):
+    def generateWeights(self, distribution_type, x, y):
         if (distribution_type == "gaussian"):
             for e in self.edgeArray:
                 # implement algorithms for weights generation.
-                if allow_negative == False:
+                if self.allow_negative == False:
                     value = gauss(x, y)
                     while value < 0:
                         value = gauss(x, y)
-                elif allow_negative == True:
+                elif self.allow_negative == True:
                     value = gauss(x, y)
                 self.weightArray.append(round(value, 1))
         elif (distribution_type == "random"):
