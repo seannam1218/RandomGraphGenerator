@@ -83,12 +83,11 @@ generate_button = Button(canvas, text="Generate", command=onGenerateButtonPress)
 generate_button.place(x=WIDTH/5- 130, y=HEIGHT/10+ 15*LINE)
 
 def onSaveButtonPress():
-
-    time = strftime("%Y_%m_%d", gmtime())
+    time = strftime("%Y_%m_%d")
     n = 0
     while (os.path.isfile(time + '.txt') == True):
-        time = strftime("%Y_%m_%d", gmtime()) + "(" + str(n) + ")"
         n += 1
+        time = strftime("%Y_%m_%d") + "(" + str(n) + ")"
 
     f = open(time + '.txt', 'w')
     f.write("Vertices = " + str(graph.vertexArray) + "\n" + "Edges = " + str(graph.edgeArray) + "\n")
