@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
-
-import copy
+from time import strftime, gmtime
+import os.path
 
 from Graph import *
 
@@ -83,7 +83,14 @@ generate_button = Button(canvas, text="Generate", command=onGenerateButtonPress)
 generate_button.place(x=WIDTH/5- 130, y=HEIGHT/10+ 15*LINE)
 
 def onSaveButtonPress():
-    f = open('helloworld.txt', 'w')
+
+    time = strftime("%Y_%m_%d", gmtime())
+    n = 0
+    while (os.path.isfile(time + '.txt') == True):
+        time = strftime("%Y_%m_%d", gmtime()) + "(" + str(n) + ")"
+        n += 1
+
+    f = open(time + '.txt', 'w')
     f.write("Vertices = " + str(graph.vertexArray) + "\n" + "Edges = " + str(graph.edgeArray) + "\n")
     if weight_option.get != "Weighted: off":
         f.write("Weights = " + str(graph.weightArray) + "\n")
@@ -362,7 +369,6 @@ def draw_vertex(name, x, y, r):
     canvas.create_oval(x-r, y-r, x+r, y+r, fill = VERTEX_COLOR)
     # draw labels for the vertices
     draw_label(name, 11, x, y, VERTEX_COLOR)
-
 
 canvas.pack()
 root.mainloop()
