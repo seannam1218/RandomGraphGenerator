@@ -1,7 +1,6 @@
 from math import *
 from random import random, gauss
 
-
 class Graph:
     def __init__(self, v, e, loops):
         self.v = v
@@ -14,6 +13,7 @@ class Graph:
         self.directed = False
         self.weighted = False
         self.negative = True
+        self.multi = False
         #self.connected = False
 
     def makeGraph(self):
@@ -35,14 +35,16 @@ class Graph:
                     continue
 
             #check for duplicate edges in UNIGRAPH
-            for e in self.edgeArray:
-                if (e[0] == start_vertex and e[1] == end_vertex) or (e[0] == end_vertex and e[1] == start_vertex):
-                    repeated = True
-                    break
+            if self.multi == False:
+                for e in self.edgeArray:
+                    if (e[0] == start_vertex and e[1] == end_vertex) or (e[0] == end_vertex and e[1] == start_vertex):
+                        repeated = True
+                        break
 
-            if repeated == True:
-                repeated = False
-                continue
+                if repeated == True:
+                    repeated = False
+                    continue
+
 
             edge.append(start_vertex)
             edge.append(end_vertex)

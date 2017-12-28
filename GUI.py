@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import messagebox
 
+import copy
+
 from Graph import *
 
 #constants for the window:
@@ -29,24 +31,26 @@ root = Tk()
 CANVAS_BG = "aquamarine"
 canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg = CANVAS_BG)
 
-def onButtonPress():
+def onGenerateButtonPress():
     if v_entry.get() == "" or e_entry.get() == "":
         messagebox.showinfo("Information", "Please fill in the entry boxes for the number of vertices and edges.")
         return
     v.set(v_entry.get())
     e.set(e_entry.get())
+
     #check for entries that cause errors
     if v.get() > 20 or v.get() < 1:
         messagebox.showinfo("Information", "Minimum number of vertices is 1; Maximum number of vertices is 20.")
         return
-    #for unigraphs
-    if e.get() > v.get()*(v.get()-1)/2 and loops.get() == False:
-        messagebox.showinfo("Information", "Maximum number of edges for a loopless unigraph of " + str(v.get()) + " vertices is " + str(v.get()*(v.get()-1)/2) + ".")
-        return
 
-    if e.get() > (v.get()*(v.get()-1)/2 + v.get()) and loops.get() == True:
-        messagebox.showinfo("Information", "Maximum number of edges for a unigraph with loops of " + str(v.get()) + " vertices is " + str((v.get()*(v.get()-1)/2) + v.get()) + ".")
-        return
+    #for unigraphs
+    if multigraph.get() == False:
+        if e.get() > v.get()*(v.get()-1)/2 and loops.get() == False:
+            messagebox.showinfo("Information", "Maximum number of edges for a loopless unigraph of " + str(v.get()) + " vertices is " + str(v.get()*(v.get()-1)/2) + ".")
+            return
+        if e.get() > (v.get()*(v.get()-1)/2 + v.get()) and loops.get() == True:
+            messagebox.showinfo("Information", "Maximum number of edges for a unigraph with loops of " + str(v.get()) + " vertices is " + str((v.get()*(v.get()-1)/2) + v.get()) + ".")
+            return
 
     if weight_option.get() == "Weighted: Gaussian-distributed weights":
         if wt_entry1.get() == "" or wt_entry2.get() == "":
@@ -75,8 +79,18 @@ def onButtonPress():
 
     generate_graph(v.get(), e.get())
 
-generate_button = Button(canvas, text="Generate", command=onButtonPress)
-generate_button.place(x=WIDTH/8, y=HEIGHT/2)
+generate_button = Button(canvas, text="Generate", command=onGenerateButtonPress)
+generate_button.place(x=WIDTH/5- 130, y=HEIGHT/10+ 15*LINE)
+
+def onSaveButtonPress():
+    f = open('helloworld.txt', 'w')
+    f.write("Vertices = " + str(graph.vertexArray) + "\n" + "Edges = " + str(graph.edgeArray) + "\n")
+    if weight_option.get != "Weighted: off":
+        f.write("Weights = " + str(graph.weightArray) + "\n")
+    f.close()
+
+save_button = Button(canvas, text="Save", command=onSaveButtonPress)
+save_button.place(x=WIDTH / 5 - 60, y=HEIGHT / 10 + 15 * LINE)
 
 v_entry = Entry(canvas, width=5)
 v_entry.place(x=WIDTH/5, y=HEIGHT/10)
@@ -85,6 +99,7 @@ e_entry.place(x=WIDTH/5, y=HEIGHT/10+LINE)
 
 entry_label_vertex = Label(canvas, text = "Number of vertices:", bg = CANVAS_BG)
 entry_label_vertex.place(x=WIDTH/5 - 130, y=HEIGHT/10)
+
 entry_label_edge = Label(canvas, text = "Number of vertices:", bg = CANVAS_BG)
 entry_label_edge.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE)
 
@@ -97,6 +112,11 @@ directed = BooleanVar()
 directed.set(False)
 directed_check = Checkbutton(canvas, text = "directed", variable = directed, onvalue="True", offvalue="False", bg = CANVAS_BG)
 directed_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*4)
+
+multigraph = BooleanVar()
+multigraph.set(False)
+multigraph_check = Checkbutton(canvas, text = "multigraph (visualization not supported)", variable = multigraph, onvalue="True", offvalue="False", bg = CANVAS_BG)
+multigraph_check.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*5)
 
 weight_option = StringVar()
 weight_option.set("Weighted: off") # initial value
@@ -120,17 +140,17 @@ def onOptionClick(option):
         wt_entry2_label.config(text=wt_entry2_name.get())
 
 option = OptionMenu(canvas, weight_option, *(options), command=onOptionClick)
-option.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*6)
+option.place(x=WIDTH/5 - 130, y=HEIGHT/10 + LINE*7)
 
 allow_negative = BooleanVar()
 allow_negative.set(False)
 allow_negative_check = Checkbutton(canvas, text = "allow negative weights", variable = allow_negative, onvalue="True", offvalue="False", bg = CANVAS_BG)
-allow_negative_check.place(x=WIDTH/5 - 30, y=HEIGHT/10 + LINE*8)
+allow_negative_check.place(x=WIDTH/5 - 30, y=HEIGHT/10 + LINE*9)
 
 wt_entry1 = Entry(canvas, width=5)
-wt_entry1.place(x=WIDTH/5-80, y=HEIGHT/10+LINE*8)
+wt_entry1.place(x=WIDTH/5-80, y=HEIGHT/10+LINE*9)
 wt_entry2 = Entry(canvas, width=5)
-wt_entry2.place(x=WIDTH/5-80, y=HEIGHT/10+LINE*9)
+wt_entry2.place(x=WIDTH/5-80, y=HEIGHT/10+LINE*10)
 
 wt_entry1_name = StringVar()
 wt_entry1_name.set("N/A")
@@ -138,20 +158,26 @@ wt_entry2_name = StringVar()
 wt_entry2_name.set("N/A")
 
 wt_entry1_label = Label(canvas, text = wt_entry1_name.get(), bg = CANVAS_BG)
-wt_entry1_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*8)
+wt_entry1_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*9)
 wt_entry2_label = Label(canvas, text = wt_entry2_name.get(), bg = CANVAS_BG)
-wt_entry2_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*9)
+wt_entry2_label.place(x=WIDTH/5 - 130, y=HEIGHT/10+LINE*10)
 
 v = IntVar()
 e = IntVar()
 v.set(2)
 e.set(2)
 
+graph = None
+
 def generate_graph(v, e):
     # generate graph
+    global graph
     graph = Graph(v, e, loops.get())
 
     graph.directed = directed.get()
+    graph.multi = multigraph.get()
+    if graph.multi==True:
+        messagebox.showinfo("Information", "Visualization for multigraphs is not supported. Vertices, edges and weights were generated and are available for saving.")
 
     graph.makeGraph()
     vertexPosArray = []
@@ -192,43 +218,51 @@ def generate_graph(v, e):
             graph.generateWeights("random", False, int(wt_entry1.get()), int(wt_entry2.get()))
 
     #draw edges
-    for i in range(0, graph.e):
-        vertex1_index = ord(graph.edgeArray[i][0]) - 97
-        vertex2_index = ord(graph.edgeArray[i][1]) - 97
+    if graph.multi == False:
+        for i in range(0, graph.e):
+            vertex1_index = ord(graph.edgeArray[i][0]) - 97
+            vertex2_index = ord(graph.edgeArray[i][1]) - 97
 
-        x1 = vertexPosArray[vertex1_index][0]
-        y1 = vertexPosArray[vertex1_index][1]
-        x2 = vertexPosArray[vertex2_index][0]
-        y2 = vertexPosArray[vertex2_index][1]
-        draw_edge(x1, y1, x2, y2, graph.directed)
+            x1 = vertexPosArray[vertex1_index][0]
+            y1 = vertexPosArray[vertex1_index][1]
+            x2 = vertexPosArray[vertex2_index][0]
+            y2 = vertexPosArray[vertex2_index][1]
+            draw_edge(x1, y1, x2, y2, graph.directed)
 
-        dx = x2 - x1
-        dy = y2 - y1
+            dx = x2 - x1
+            dy = y2 - y1
 
-        if (graph.weighted == True):
-            #for edges that are not loops
-            if (graph.edgeArray[i][0] != graph.edgeArray[i][1]):
-                try:
-                    factor = avoid_collision(x1, y1, x2, y2, 0.2)
-                except:
-                    coordinatesArray.clear()
-                    factor = avoid_collision2(x1, y1, x2, y2, 0.63)
-                draw_label(graph.weightArray[i], 7, x1+factor*dx, y1+factor*dy, CANVAS_BG)
+            if (graph.weighted == True):
+                #for edges that are not loops
+                if (graph.edgeArray[i][0] != graph.edgeArray[i][1]):
+                    if (len(graph.edgeArray) < 25):
+                        try:
+                            factor = avoid_collision(x1, y1, x2, y2, 0.3)
+                        except:
+                            #coordinatesArray.clear()
+                            factor = avoid_collision2(x1, y1, x2, y2, 0.3)
+                        draw_label(graph.weightArray[i], 7, x1+factor*dx, y1+factor*dy, CANVAS_BG)
+                    else:
+                        try:
+                            factor = avoid_collision2(x1, y1, x2, y2, 0.3)
+                        except:
+                            factor = random()*0.4+0.3
+                        draw_label(graph.weightArray[i], 7, x1 + factor * dx, y1 + factor * dy, CANVAS_BG)
+                #for loops
+                else:
+                    dx = X_CENTER - x1
+                    dy = Y_CENTER - y1
+                    draw_label(graph.weightArray[i], 7, x1-0.18*dx, y1-0.18*dy, CANVAS_BG)
 
-            #for loops
-            else:
-                dx = X_CENTER - x1
-                dy = Y_CENTER - y1
-                draw_label(graph.weightArray[i], 7, x1-0.18*dx, y1-0.18*dy, CANVAS_BG)
+            for j in range(50):
+                coordinates = []
+                coordinates.append(round(x1 + (j / 50) * dx))
+                coordinates.append(round(y1 + (j / 50) * dy))
+                coordinatesArray.append(coordinates)
 
-        for j in range(50):
-            coordinates = []
-            coordinates.append(round(x1 + (j / 50) * dx))
-            coordinates.append(round(y1 + (j / 50) * dy))
-            coordinatesArray.append(coordinates)
+        # after calculation, empty coordinatesArray
+        coordinatesArray.clear()
 
-    # after calculation, empty coordinatesArray
-    coordinatesArray.clear()
     # print vertex set and edge set (and weight set) onto console.
     graph.printGraph()
 
@@ -237,11 +271,8 @@ def avoid_collision(x1, y1, x2, y2, factor):
     x = x1 + ret * (x2 - x1)
     y = y1 + ret * (y2 - y1)
     n = 12
-    for i in range(len(coordinatesArray)):
-        if (x > coordinatesArray[i][0] - n) and (x < coordinatesArray[i][0] + n+5) and (y > coordinatesArray[i][1] - n) and (y < coordinatesArray[i][1] + n):
-            print('collision detected')
-            #mode1 = random()*0.4 + 0.3
-            #mode2 = ret-0.05
+    for i in range(len(coordinatesArray)-1):
+        if (x > coordinatesArray[i][0] - n) and (x < coordinatesArray[i][0] + n+5) and (y > coordinatesArray[i][1] - n) and (y < coordinatesArray[i][1] + n+5):
             ret = avoid_collision(x1, y1, x2, y2, random()*0.4 + 0.3)
     return ret
 
@@ -251,10 +282,11 @@ def avoid_collision2(x1, y1, x2, y2, factor):
     y = y1 + ret * (y2 - y1)
     for l in labelArray:
         # if location of label collides with another existing label, change def_factor
-        if (x < l[1]+12) and (x > l[1]-12) and (y < l[2]+12) and (y > l[2]-12):
-            ret = avoid_collision2(x1, y1, x2, y2, ret-0.03)
+        if (x < l[1]+17) and (x > l[1]-12) and (y < l[2]+12) and (y > l[2]-12):
+            ret = avoid_collision2(x1, y1, x2, y2, ret+0.03)
+        if ret > 0.9 or ret < 0.2:
+            ret = random()*0.4+0.3
     return ret
-
 
 #draws loops by drawing an arc on the outer periphery of the graph:
 def draw_loop(x, y, r, s, e):
@@ -318,10 +350,6 @@ def draw_edge(x1, y1, x2, y2, dir):
 
 # draws label of given name centered on x and y coordinates
 def draw_label(name, fontsize, x, y, bg):
-    # make a frame to allow customization of label size
-    #frame = Frame(canvas, width=w, height=h, bg=bg)
-    #frame.place(x=x-w/2, y=y-h/2)
-    # make label and pack it on frame.
     var = StringVar()
     label = Label(canvas, textvariable = var, bg = bg, font=("Arial", fontsize))
     label.place(x=x-6, y=y-9)
